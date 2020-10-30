@@ -11,7 +11,10 @@ using UnityEngine.UI;
 
 public class LocationLoader : MonoBehaviour
 {
-	public GameScene[] mainMenuScenes;
+	[Header("Initialization Scene")]
+	public GameSceneSO initializationScene;
+	[Header("Load on start")]
+	public GameSceneSO[] mainMenuScenes;
 	[Header("Loading Screen")]
 	public GameObject loadingInterface;
 	public Image loadingProgressBar;
@@ -25,7 +28,7 @@ public class LocationLoader : MonoBehaviour
 	//List of scenes to unload
 	private List<Scene> _ScenesToUnload = new List<Scene>();
 	//Keep track of the scene we want to set as active (for lighting/skybox)
-	private GameScene _activeScene;
+	private GameSceneSO _activeScene;
 
 	private void OnEnable()
 	{
@@ -39,7 +42,10 @@ public class LocationLoader : MonoBehaviour
 
 	private void Start()
 	{
-		LoadMainMenu();
+		if (SceneManager.GetActiveScene().name == initializationScene.sceneName)
+		{
+			LoadMainMenu();
+		}
 	}
 
 	private void LoadMainMenu()
@@ -48,7 +54,7 @@ public class LocationLoader : MonoBehaviour
 	}
 
 	/// <summary> This function loads the scenes passed as array parameter </summary>
-	public void LoadScenes(GameScene[] locationsToLoad, bool showLoadingScreen)
+	public void LoadScenes(GameSceneSO[] locationsToLoad, bool showLoadingScreen)
 	{
 		//Add all current open scenes to unload list
 		AddScenesToUnload();
@@ -68,6 +74,7 @@ public class LocationLoader : MonoBehaviour
 		if (showLoadingScreen)
 		{
 			//Show the progress bar and track progress if loadScreen is true
+			loadingInterface.SetActive(true);
 			StartCoroutine(TrackLoadingProgress());
 		}
 		else
@@ -86,17 +93,14 @@ public class LocationLoader : MonoBehaviour
 	}
 	public void AddScenesToUnload()
 	{
-		if (SceneManager.sceneCount > 0)
+		for (int i = 0; i < SceneManager.sceneCount; ++i)
 		{
-			for (int i = 0; i < SceneManager.sceneCount; ++i)
+			Scene scene = SceneManager.GetSceneAt(i);
+			if (scene.name != initializationScene.sceneName)
 			{
-				Scene scene = SceneManager.GetSceneAt(i);
-				if (scene.name != "ScenesLoader")
-				{
-					Debug.Log("Added scene to unload = " + scene.name);
-					//Add the scene to the list of the scenes to unload
-					_ScenesToUnload.Add(scene);
-				}
+				Debug.Log("Added scene to unload = " + scene.name);
+				//Add the scene to the list of the scenes to unload
+				_ScenesToUnload.Add(scene);
 			}
 		}
 	}
@@ -118,15 +122,12 @@ public class LocationLoader : MonoBehaviour
 
 	public bool CheckLoadState(String sceneName)
 	{
-		if (SceneManager.sceneCount > 0)
+		for (int i = 0; i < SceneManager.sceneCount; ++i)
 		{
-			for (int i = 0; i < SceneManager.sceneCount; ++i)
+			Scene scene = SceneManager.GetSceneAt(i);
+			if (scene.name == sceneName)
 			{
-				Scene scene = SceneManager.GetSceneAt(i);
-				if (scene.name == sceneName)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;
